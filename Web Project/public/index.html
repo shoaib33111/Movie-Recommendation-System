@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MovieDB</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#e8c96c;--gold2:#c9a84c;--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c27;--border:#2a2a3a;--text:#e8e8f0;--muted:#7070a0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+header{background:rgba(0,0,0,.9);padding:20px 36px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.logo{font-family:'Cinzel',serif;font-size:22px;font-weight:700;letter-spacing:4px;color:var(--gold)}
+.logo span{color:var(--text);font-weight:400}
+.status{font-size:12px;padding:4px 12px;border-radius:20px;letter-spacing:1px}
+.status.ok{background:rgba(29,158,117,.15);color:#1D9E75;border:1px solid rgba(29,158,117,.3)}
+.status.err{background:rgba(224,82,82,.15);color:#e05252;border:1px solid rgba(224,82,82,.3)}
+nav{display:flex;gap:0;padding:0 36px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:12px 20px;font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+main{padding:28px 36px;max-width:1300px;margin:0 auto}
+.section{display:none;animation:fadeIn .3s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page-title{font-family:'Cinzel',serif;font-size:20px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.sql-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(100,160,255,.08);border:1px solid rgba(100,160,255,.2);color:#80aaff;font-size:11px;font-family:monospace;padding:5px 12px;border-radius:6px;margin-bottom:20px;letter-spacing:.5px}
+.sql-badge b{background:#2244aa;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px}
+.search-wrap{position:relative;margin-bottom:24px}
+.search-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:13px 50px;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;transition:.2s}
+.search-wrap input:focus{border-color:var(--gold)}
+.search-wrap input::placeholder{color:var(--muted)}
+.si{position:absolute;left:16px;top:50%;transform:translateY(-50%);opacity:.5}
+.sbtn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--gold);color:#000;border:none;padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
+.genre-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.gp{padding:7px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;transition:.2s;color:var(--muted)}
+.gp:hover,.gp.active{border-color:var(--gold);color:var(--gold);background:rgba(232,201,108,.08)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:.25s}
+.card:hover{border-color:rgba(232,201,108,.35);transform:translateY(-3px);box-shadow:0 12px 36px rgba(0,0,0,.4)}
+.card-poster{height:130px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
+.c1{background:linear-gradient(135deg,#1a0a0a,#3a1010)}
+.c2{background:linear-gradient(135deg,#0a1a0a,#103a10)}
+.c3{background:linear-gradient(135deg,#0a0a1a,#101038)}
+.c4{background:linear-gradient(135deg,#1a1a0a,#3a3a10)}
+.c5{background:linear-gradient(135deg,#1a0a1a,#3a1038)}
+.c6{background:linear-gradient(135deg,#0a1a1a,#103838)}
+.c7{background:linear-gradient(135deg,#1a0f0a,#3a2210)}
+.gtag{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);color:var(--gold);font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid rgba(232,201,108,.3)}
+.rnk{position:absolute;top:8px;left:8px;width:26px;height:26px;background:var(--gold);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;font-family:'Cinzel',serif}
+.card-body{padding:12px 14px}
+.card-title{font-family:'Cinzel',serif;font-size:12px;font-weight:600;margin-bottom:5px;line-height:1.4}
+.card-meta{display:flex;justify-content:space-between;margin-bottom:6px}
+.card-year{font-size:11px;color:var(--muted)}
+.card-rating{font-size:12px;font-weight:500;color:var(--gold)}
+.card-desc{font-size:11px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat-n{font-family:'Cinzel',serif;font-size:26px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}
+td{padding:11px 14px;font-size:14px;border-bottom:1px solid rgba(42,42,58,.5)}
+tr:hover td{background:var(--surface2)}
+.bar{height:5px;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));display:inline-block;vertical-align:middle;margin-right:8px}
+.rlist{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ri{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between}
+.ri:hover{background:var(--surface2)}
+.ri-title{font-size:13px;font-family:'Cinzel',serif;margin-bottom:3px}
+.ri-stars{color:var(--gold);font-size:13px}
+.ri-num{font-size:20px;font-weight:700;color:var(--gold);font-family:'Cinzel',serif}
+.empty{text-align:center;padding:48px;color:var(--muted);grid-column:1/-1}
+.loader{text-align:center;padding:40px;color:var(--muted);grid-column:1/-1;font-size:13px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:480px;width:90%;position:relative;animation:fadeIn .2s ease}
+.mcls{position:absolute;top:14px;right:14px;background:var(--surface2);border:none;color:var(--muted);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px}
+.m-genre{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.m-title{font-family:'Cinzel',serif;font-size:18px;margin-bottom:8px}
+.m-meta{display:flex;gap:14px;margin-bottom:14px;font-size:13px;color:var(--muted)}
+.m-desc{font-size:14px;line-height:1.7;color:#b0b0c8}
+@media(max-width:700px){.stat-row{grid-template-columns:1fr 1fr}.rlist{grid-template-columns:1fr}nav{padding:0 16px}main{padding:16px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Movie<span>DB</span></div>
+  <div class="status" id="dbStatus">Connecting...</div>
+</header>
+
+<nav>
+  <div class="tab active" onclick="go('search')">🔍 Search</div>
+  <div class="tab" onclick="go('genre')">🎭 By Genre</div>
+  <div class="tab" onclick="go('top')">🏆 Top 10</div>
+  <div class="tab" onclick="go('analysis')">📊 Analysis</div>
+  <div class="tab" onclick="go('ratings')">⭐ Ratings</div>
+</nav>
+
+<main>
+
+<div class="section active" id="sec-search">
+  <div class="page-title">Movie Search</div>
+  <div class="page-sub">SearchMovie stored procedure — searches Title + Description</div>
+  <div class="sql-badge"><b>SQL</b> EXEC SearchMovie @Keyword = '...'</div>
+  <div class="search-wrap">
+    <span class="si">🔎</span>
+    <input id="sinput" type="text" placeholder="Type movie name or keyword..." onkeydown="if(event.key==='Enter')doSearch()"/>
+    <button class="sbtn" onclick="doSearch()">Search</button>
+  </div>
+  <div id="sresults" class="grid"><div class="empty">Search karo upar 👆</div></div>
+</div>
+
+<div class="section" id="sec-genre">
+  <div class="page-title">Browse by Genre</div>
+  <div class="page-sub">GetMoviesByGenre stored procedure</div>
+  <div class="sql-badge"><b>SQL</b> EXEC GetMoviesByGenre @GenreID = ...</div>
+  <div class="genre-grid" id="gpills"></div>
+  <div id="gresults" class="grid"><div class="empty">Genre select karo 👆</div></div>
+</div>
+
+<div class="section" id="sec-top">
+  <div class="page-title">Top 10 Movies</div>
+  <div class="page-sub">GetTopMovies — ORDER BY Rating DESC, Views DESC</div>
+  <div class="sql-badge"><b>SQL</b> EXEC GetTopMovies</div>
+  <div id="tresults" class="grid"><div class="loader">Loading...</div></div>
+</div>
+
+<div class="section" id="sec-analysis">
+  <div class="page-title">Genre Analysis</div>
+  <div class="page-sub">GenreAnalysis VIEW — LEFT JOIN + GROUP BY</div>
+  <div class="sql-badge"><b>SQL</b> SELECT * FROM GenreAnalysis</div>
+  <div class="stat-row">
+    <div class="stat"><div class="stat-n" id="st1">—</div><div class="stat-l">Total Movies</div></div>
+    <div class="stat"><div class="stat-n">20</div><div class="stat-l">Genres</div></div>
+    <div class="stat"><div class="stat-n" id="st3">—</div><div class="stat-l">Top Genre</div></div>
+    <div class="stat"><div class="stat-n" id="st4">—</div><div class="stat-l">Avg Rating</div></div>
+  </div>
+  <table><thead><tr><th>#</th><th>Genre</th><th>Movies</th><th>Chart</th></tr></thead>
+  <tbody id="atable"></tbody></table>
+</div>
+
+<div class="section" id="sec-ratings">
+  <div class="page-title">Movie Ratings</div>
+  <div class="page-sub">MovieRatings VIEW + GetAverageRating() scalar function</div>
+  <div class="sql-badge"><b>SQL</b> SELECT * FROM MovieRatings</div>
+  <div class="rlist" id="rlist"><div class="loader">Loading...</div></div>
+</div>
+
+</main>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <button class="mcls" onclick="document.getElementById('modal').classList.remove('open')">✕</button>
+    <div class="m-genre" id="mg"></div>
+    <div class="m-title" id="mt"></div>
+    <div class="m-meta"><span id="my"></span><span>⭐ <span id="mr"></span></span><span>👁 <span id="mv"></span></span></div>
+    <div class="m-desc" id="md"></div>
+  </div>
+</div>
+
+<script>
+const emojis={Action:'💥',Comedy:'😄',Drama:'🎭',Horror:'😱','Sci-Fi':'🚀',Romance:'💕',Thriller:'🕵️',Adventure:'🗺️',Animation:'✨',Fantasy:'🧙',Crime:'🔫',Mystery:'🔮',War:'⚔️',History:'📜',Biography:'👤',Music:'🎵',Sport:'🏅',Family:'👨‍👩‍👧',Documentary:'🎬',Western:'🤠'};
+const colors=['c1','c2','c3','c4','c5','c6','c7'];
+
+// Check DB connection
+fetch('/api/movies').then(r=>{
+  const el=document.getElementById('dbStatus');
+  if(r.ok){el.textContent='✅ Database Connected';el.className='status ok';}
+  else{el.textContent='❌ DB Error';el.className='status err';}
+}).catch(()=>{
+  const el=document.getElementById('dbStatus');
+  el.textContent='❌ Server Nahi Chala';el.className='status err';
+});
+
+function card(m, rank=null){
+  const g=m.GenreName||'';
+  const ci=colors[(Object.keys(emojis).indexOf(g))%7]||'c1';
+  const emoji=emojis[g]||'🎬';
+  return `<div class="card" onclick='openModal(${JSON.stringify(m).replace(/'/g,"&#39;")})'>
+    <div class="card-poster ${ci}">${emoji}
+      <div class="gtag">${g}</div>
+      ${rank!==null?`<div class="rnk">${rank}</div>`:''}
+    </div>
+    <div class="card-body">
+      <div class="card-title">${m.Title}</div>
+      <div class="card-meta"><span class="card-year">${m.ReleaseYear||''}</span><span class="card-rating">⭐ ${m.Rating||''}</span></div>
+      <div class="card-desc">${m.Description||''}</div>
+    </div>
+  </div>`;
+}
+
+function renderGrid(id, data, ranked=false){
+  const el=document.getElementById(id);
+  if(!data||!data.length){el.innerHTML='<div class="empty">Koi movie nahi mili</div>';return;}
+  el.innerHTML=data.map((m,i)=>card(m,ranked?i+1:null)).join('');
+}
+
+async function doSearch(){
+  const q=document.getElementById('sinput').value.trim();
+  if(!q){document.getElementById('sresults').innerHTML='<div class="empty">Kuch likho pehle</div>';return;}
+  document.getElementById('sresults').innerHTML='<div class="loader">Searching...</div>';
+  const data=await fetch(`/api/search?q=${encodeURIComponent(q)}`).then(r=>r.json());
+  renderGrid('sresults',data);
+}
+
+// Genre pills
+const genres=['Action','Comedy','Drama','Horror','Sci-Fi','Romance','Thriller','Adventure','Animation','Fantasy','Crime','Mystery','War','History','Biography','Music','Sport','Family','Documentary','Western'];
+const gids={Action:1,Comedy:2,Drama:3,Horror:4,'Sci-Fi':5,Romance:6,Thriller:7,Adventure:8,Animation:9,Fantasy:10,Crime:11,Mystery:12,War:13,History:14,Biography:15,Music:16,Sport:17,Family:18,Documentary:19,Western:20};
+const gp=document.getElementById('gpills');
+genres.forEach(g=>{
+  const d=document.createElement('div');d.className='gp';d.textContent=(emojis[g]||'')+'  '+g;
+  d.onclick=async()=>{
+    document.querySelectorAll('.gp').forEach(x=>x.classList.remove('active'));d.classList.add('active');
+    document.getElementById('gresults').innerHTML='<div class="loader">Loading...</div>';
+    const data=await fetch(`/api/genre/${gids[g]}`).then(r=>r.json());
+    // add genre name for display
+    data.forEach(m=>m.GenreName=g);
+    renderGrid('gresults',data);
+  };gp.appendChild(d);
+});
+
+// Top movies
+fetch('/api/top').then(r=>r.json()).then(data=>renderGrid('tresults',data,true));
+
+// Analysis
+fetch('/api/analysis').then(r=>r.json()).then(data=>{
+  if(!data.length)return;
+  const max=data[0].TotalMovies;
+  const tbody=document.getElementById('atable');
+  data.forEach((row,i)=>{
+    const w=Math.round(row.TotalMovies/max*160);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--muted);font-size:12px">${i+1}</td>
+      <td>${emojis[row.GenreName]||''} ${row.GenreName}</td>
+      <td style="font-weight:500">${row.TotalMovies}</td>
+      <td><span class="bar" style="width:${w}px"></span><span style="font-size:12px;color:var(--muted)">${Math.round(row.TotalMovies/data.reduce((s,x)=>s+x.TotalMovies,0)*100)}%</span></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('st1').textContent=data.reduce((s,x)=>s+x.TotalMovies,0);
+  document.getElementById('st3').textContent=data[0].GenreName;
+});
+
+// Also load avg rating for stat
+fetch('/api/movies').then(r=>r.json()).then(data=>{
+  if(!data.length)return;
+  const avg=(data.reduce((s,m)=>s+(parseFloat(m.Rating)||0),0)/data.length).toFixed(1);
+  document.getElementById('st4').textContent=avg;
+});
+
+// Ratings
+fetch('/api/ratings').then(r=>r.json()).then(data=>{
+  if(!data.length){document.getElementById('rlist').innerHTML='<div class="empty">No data</div>';return;}
+  function stars(n){const s=Math.round(n*5/10);return '★'.repeat(s)+'☆'.repeat(5-s);}
+  document.getElementById('rlist').innerHTML=data.slice(0,20).map(r=>`
+    <div class="ri">
+      <div><div class="ri-title">${r.Title}</div><div class="ri-stars">${stars(r.AvgRating)}</div></div>
+      <div class="ri-num">${parseFloat(r.AvgRating).toFixed(1)}</div>
+    </div>`).join('');
+});
+
+function openModal(m){
+  document.getElementById('mg').textContent=(emojis[m.GenreName]||'🎬')+' '+(m.GenreName||'');
+  document.getElementById('mt').textContent=m.Title;
+  document.getElementById('my').textContent=m.ReleaseYear;
+  document.getElementById('mr').textContent=(m.Rating||'N/A')+' / 10';
+  document.getElementById('mv').textContent=(m.Views||0).toLocaleString()+' views';
+  document.getElementById('md').textContent=m.Description||'';
+  document.getElementById('modal').classList.add('open');
+}
+
+function go(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['search','genre','top','analysis','ratings'][i]===name));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+}
+</script>
+</body>
+</html>
